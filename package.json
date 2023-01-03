@@ -1,15 +1,15 @@
 {
-  "name": "botpa",
+  "name": "wabot-ai-mk1",
   "version": "1.0.0",
-  "description": "Bot Auto Reply Perkara ",
+  "description": "Bot Auto Reply with openAI",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "anton.dwitjandra@gmail.com",
+  "author": "reno.nugraha.tsk@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "@adiwajshing/baileys": "github:adiwajshing/baileys",
+    "@adiwajshing/baileys": "^5.0.0",
     "@adiwajshing/keyed-db": "^0.2.4",
     "axios": "^0.27.2",
     "dotenv": "^16.0.3",
