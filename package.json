@@ -9,7 +9,7 @@
   "author": "reno.nugraha.tsk@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "@adiwajshing/baileys": "^5.0.0",
+    "@adiwajshing/baileys": "github:adiwajshing/baileys",
     "@adiwajshing/keyed-db": "^0.2.4",
     "axios": "^0.27.2",
     "dotenv": "^16.0.3",
