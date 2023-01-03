@@ -195,6 +195,15 @@ async function connectToWhatsApp() {
                             "Halo Reno"
                         );
                     }
+                } else if (
+                    !messages[0].key.fromMe &&
+                    pesanMasuk === "cek bot"
+                ) {
+                    await sock.sendMessage(
+                        noWa,
+                        { text: "Bot aktif" },
+                        { quoted: messages[0] }
+                    );
                 }
             }
         }
