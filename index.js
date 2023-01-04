@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const { Octokit } = require("@octokit/core");
+
 const openAI = require("openai");
 const { Configuration, OpenAIApi } = openAI;
 
@@ -39,6 +41,10 @@ const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
+
+const octokit = new Octokit({
+    auth: process.env.GITHUB_PERSONAL_TOKEN,
+});
 
 //fungsi suara capital
 function capital(textSound) {
@@ -202,6 +208,36 @@ async function connectToWhatsApp() {
                     await sock.sendMessage(
                         noWa,
                         { text: "Bot aktif" },
+                        { quoted: messages[0] }
+                    );
+                } else if (
+                    !messages[0].key.fromMe &&
+                    pesanMasuk === "hai reno update pb"
+                ) {
+                    const result = await octokit.request(
+                        "GET /repos/nugrahadevelopers/SIMPersonalBeauty/commits?per_page=5",
+                        {
+                            owner: "nugrahadevelopers",
+                            repo: "SIMPersonalBeauty",
+                        }
+                    );
+
+                    let text = "";
+                    const data = result.data.forEach((item, index) => {
+                        let date = new Date(item.commit.author.date);
+                        text += `Oleh: ${
+                            item.commit.author.name
+                        }\nTanggal: ${date.toLocaleString("en-GB", {
+                            hour12: false,
+                        })}\nUpdate: ${item.commit.message}\n \n=========\n \n`;
+                    });
+
+                    await sock.readMessages([messages[0].key]);
+                    await sock.sendMessage(
+                        noWa,
+                        {
+                            text: `*Update pembuatan aplikasi SIM Personal* \n \n${text}`,
+                        },
                         { quoted: messages[0] }
                     );
                 }
