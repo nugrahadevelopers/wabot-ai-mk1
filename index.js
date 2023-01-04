@@ -12,16 +12,10 @@ const {
     Mimetype,
     DisconnectReason,
     useSingleFileAuthState,
-    makeInMemoryStore,
 } = require("@adiwajshing/baileys");
 
 const { Boom } = require("@hapi/boom");
 const { state, saveState } = useSingleFileAuthState("./auth_info.json");
-const store = makeInMemoryStore({});
-store.readFromFile("./baileys_store.json");
-setInterval(() => {
-    store.writeToFile("./baileys_store.json");
-}, 10_000);
 
 const path = require("path");
 const fs = require("fs");
@@ -30,7 +24,8 @@ const https = require("https");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const app = require("express")();
+
+const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
 const axios = require("axios");
@@ -45,16 +40,6 @@ const openai = new OpenAIApi(configuration);
 const octokit = new Octokit({
     auth: process.env.GITHUB_PERSONAL_TOKEN,
 });
-
-//fungsi suara capital
-function capital(textSound) {
-    const arr = textSound.split(" ");
-    for (var i = 0; i < arr.length; i++) {
-        arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
-    }
-    const str = arr.join(" ");
-    return str;
-}
 
 async function connectToWhatsApp() {
     const sock = makeWASocket({
@@ -81,8 +66,6 @@ async function connectToWhatsApp() {
             return message;
         },
     });
-
-    store.bind(sock.ev);
 
     sock.ev.on("connection.update", (update) => {
         //console.log(update);
@@ -246,7 +229,7 @@ async function connectToWhatsApp() {
     });
 }
 
-connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
+connectToWhatsApp().catch((err) => console.log("unexpected error: " + err));
 
 server.listen(port, () => {
     console.log("Server Berjalan pada Port : " + port);
