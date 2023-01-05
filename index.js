@@ -7,11 +7,11 @@ const { Configuration, OpenAIApi } = openAI;
 
 const {
     default: makeWASocket,
-    MessageType,
-    MessageOptions,
-    Mimetype,
     DisconnectReason,
     useSingleFileAuthState,
+    fetchLatestBaileysVersion,
+    delay,
+    AnyMessageContent,
 } = require("@adiwajshing/baileys");
 
 const { Boom } = require("@hapi/boom");
@@ -42,28 +42,19 @@ const octokit = new Octokit({
 });
 
 async function connectToWhatsApp() {
+    const { version, isLatest } = await fetchLatestBaileysVersion();
+    console.log(
+        `Using wa version v${version.join(".")}, isLatest: ${isLatest}`
+    );
+
     const sock = makeWASocket({
+        version: version,
         auth: state,
         printQRInTerminal: true,
-        patchMessageBeforeSending: (message) => {
-            const requiresPatch = !!(
-                message.buttonsMessage || message.listMessage
-            );
-            if (requiresPatch) {
-                message = {
-                    viewOnceMessage: {
-                        message: {
-                            messageContextInfo: {
-                                deviceListMetadataVersion: 2,
-                                deviceListMetadata: {},
-                            },
-                            ...message,
-                        },
-                    },
-                };
-            }
-
-            return message;
+        getMessage: async (key) => {
+            return {
+                conversation: "hello",
+            };
         },
     });
 
@@ -114,20 +105,35 @@ async function connectToWhatsApp() {
                     pesanMasuk.split(" ").slice(0, 2).join(" ") === "halo reno"
                 ) {
                     const question = pesanMasuk.replace("halo reno", "");
-                    const response = await openai.createCompletion({
-                        model: "text-davinci-003",
-                        prompt: `${question}`,
-                        max_tokens: 500,
-                        temperature: 0.9,
-                    });
-
-                    if (response.data.choices[0].text) {
+                    if (question == "") {
+                        await delay(10);
                         await sock.readMessages([messages[0].key]);
+                        await delay(10);
                         await sock.sendMessage(
                             noWa,
-                            { text: response.data.choices[0].text },
+                            {
+                                text: "Jangan cuman halo reno saja, ketikan pertanyaanmu setelahnya..",
+                            },
                             { quoted: messages[0] }
                         );
+                    } else {
+                        const response = await openai.createCompletion({
+                            model: "text-davinci-003",
+                            prompt: `${question}`,
+                            max_tokens: 500,
+                            temperature: 0.9,
+                        });
+
+                        if (response.data.choices[0].text) {
+                            await delay(10);
+                            await sock.readMessages([messages[0].key]);
+                            await delay(10);
+                            await sock.sendMessage(
+                                noWa,
+                                { text: response.data.choices[0].text },
+                                { quoted: messages[0] }
+                            );
+                        }
                     }
                 } else if (
                     !messages[0].key.fromMe &&
@@ -169,25 +175,40 @@ async function connectToWhatsApp() {
                         sections,
                     };
 
+                    await delay(10);
                     await sock.readMessages([messages[0].key]);
+                    await delay(10);
                     const result = await sock.sendMessage(noWa, listPesan);
                 } else if (
                     !messages[0].key.fromMe &&
-                    pesanMasuk === "ganti nama"
+                    pesanMasuk.split(" ").slice(0, 2).join(" ") === "ganti nama"
                 ) {
-                    if (
-                        messages[0].key.participant !== null ||
-                        messages[0].key.participant !== undefined
-                    ) {
-                        await sock.groupUpdateSubject(
-                            messages[0].key.remoteJid,
-                            "Halo Reno"
+                    if (pesanMasuk.replace("ganti nama", "") === "") {
+                        await delay(10);
+                        await sock.sendMessage(
+                            noWa,
+                            {
+                                text: "Jangan lupa memasukan nama group yg diinginkan setelah kata *ganti nama*",
+                            },
+                            { quoted: messages[0] }
                         );
+                    } else {
+                        if (
+                            messages[0].key.participant !== null ||
+                            messages[0].key.participant !== undefined
+                        ) {
+                            await delay(10);
+                            await sock.groupUpdateSubject(
+                                messages[0].key.remoteJid,
+                                pesanMasuk.replace("ganti nama", "")
+                            );
+                        }
                     }
                 } else if (
                     !messages[0].key.fromMe &&
                     pesanMasuk === "cek bot"
                 ) {
+                    await delay(10);
                     await sock.sendMessage(
                         noWa,
                         { text: "Bot aktif" },
@@ -215,14 +236,25 @@ async function connectToWhatsApp() {
                         })}\nUpdate: ${item.commit.message}\n \n=========\n \n`;
                     });
 
+                    await delay(10);
                     await sock.readMessages([messages[0].key]);
+                    await delay(10);
                     await sock.sendMessage(
                         noWa,
                         {
-                            text: `*Update pembuatan aplikasi SIM Personal* \n \n${text}`,
+                            text: `*Update pembuatan aplikasi SIM Personal Beauty* \n \n${text}`,
                         },
                         { quoted: messages[0] }
                     );
+                } else if (
+                    !messages[0].key.fromMe &&
+                    pesanMasuk === "ambil profile picture"
+                ) {
+                    const ppUrl = await sock.profilePictureUrl(
+                        messages[0].key.remoteJid,
+                        "image"
+                    );
+                    console.log("download profile picture from: " + ppUrl);
                 }
             }
         }
