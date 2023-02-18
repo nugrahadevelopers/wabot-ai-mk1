@@ -222,7 +222,7 @@ const connectToWhatsApp = async () => {
                                 process.env.APP_HOST +
                                 "/media/menu/sayur-bayam.jpg",
                         },
-                        caption: "Sayur Bayam",
+                        caption: "Sayur Bayam ( *Rp 4.500* )",
                     };
 
                     const menu2 = {
@@ -231,7 +231,7 @@ const connectToWhatsApp = async () => {
                                 process.env.APP_HOST +
                                 "/media/menu/sop-bihun-telur-puyuh.jpg",
                         },
-                        caption: "Sop Bihun Telur Puyuh",
+                        caption: "Sop Bihun Telur Puyuh ( *Rp 7.000* )",
                     };
 
                     const menu3 = {
@@ -240,7 +240,7 @@ const connectToWhatsApp = async () => {
                                 process.env.APP_HOST +
                                 "/media/menu/sayur-brokoli.jpg",
                         },
-                        caption: "Sayur Brokoli",
+                        caption: "Sayur Brokoli ( *Rp 6.500* )",
                     };
 
                     await sock.sendMessage(noWa, {
