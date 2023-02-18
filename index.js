@@ -18,6 +18,8 @@ const port = process.env.PORT || 3001;
 
 connectToWhatsApp().catch((err) => console.log("unexpected error: " + err));
 
+app.use(express.static("public"));
+
 server.listen(port, () => {
     console.log("Server Berjalan pada Port : " + port);
 });

@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const {
     default: makeWASocket,
     DisconnectReason,
@@ -210,6 +212,49 @@ const connectToWhatsApp = async () => {
                         "image"
                     );
                     console.log("download profile picture from: " + ppUrl);
+                } else if (
+                    !messages[0].key.fromMe &&
+                    pesanMasuk === "menu hari ini"
+                ) {
+                    const menu1 = {
+                        image: {
+                            url:
+                                process.env.APP_HOST +
+                                "/media/menu/sayur-bayam.jpg",
+                        },
+                        caption: "Sayur Bayam",
+                    };
+
+                    const menu2 = {
+                        image: {
+                            url:
+                                process.env.APP_HOST +
+                                "/media/menu/sop-bihun-telur-puyuh.jpg",
+                        },
+                        caption: "Sop Bihun Telur Puyuh",
+                    };
+
+                    const menu3 = {
+                        image: {
+                            url:
+                                process.env.APP_HOST +
+                                "/media/menu/sayur-brokoli.jpg",
+                        },
+                        caption: "Sayur Brokoli",
+                    };
+
+                    await sock.sendMessage(noWa, {
+                        text: "*Bingung mau makan apa?*\nKami memberikan beberapa rekomendasi menu untuk kamu.",
+                    });
+                    await sock.sendMessage(noWa, menu1, {
+                        ephemeralExpiration: 604800,
+                    });
+                    await sock.sendMessage(noWa, menu2, {
+                        ephemeralExpiration: 604800,
+                    });
+                    await sock.sendMessage(noWa, menu3, {
+                        ephemeralExpiration: 604800,
+                    });
                 }
             }
         }
