@@ -147,7 +147,9 @@ const connectToWhatsApp = async () => {
                     await delay(10);
                     await sock.readMessages([messages[0].key]);
                     await delay(10);
-                    const result = await sock.sendMessage(noWa, listPesan);
+                    const result = await sock.sendMessage(noWa, listPesan, {
+                        ephemeralExpiration: 604800,
+                    });
                 } else if (
                     !messages[0].key.fromMe &&
                     pesanMasuk.split(" ").slice(0, 2).join(" ") === "ganti nama"
