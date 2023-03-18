@@ -9,6 +9,8 @@ const {
     AnyMessageContent,
 } = require("@adiwajshing/baileys");
 const { Boom } = require("@hapi/boom");
+const fs = require("fs");
+const path = require("path");
 
 const { getPBUpdate } = require("./github");
 const { getCompletion } = require("./openai");
@@ -93,7 +95,30 @@ const connectToWhatsApp = async () => {
                             { quoted: messages[0] }
                         );
                     } else {
-                        const answer = await getCompletion(question);
+                        let readLastQuestin =
+                            fs.readFileSync("last_question.json");
+                        let questionParsed = JSON.parse(readLastQuestin);
+
+                        let answer;
+                        if (questionParsed.length > 0) {
+                            for (var i = 0; i < questionParsed.length; i++) {
+                                if (questionParsed[i].jId == noWa) {
+                                    answer = await getCompletion(
+                                        questionParsed[i].question,
+                                        questionParsed[i].answer,
+                                        question
+                                    );
+                                } else {
+                                    answer = await getCompletion(
+                                        "",
+                                        "",
+                                        question
+                                    );
+                                }
+                            }
+                        } else {
+                            answer = await getCompletion("", "", question);
+                        }
 
                         if (answer) {
                             await delay(10);
@@ -104,6 +129,53 @@ const connectToWhatsApp = async () => {
                                 { text: answer },
                                 { quoted: messages[0] }
                             );
+
+                            // check if an element exists in array using a comparer function
+                            // comparer : function(currentElement)
+                            Array.prototype.inArray = function (comparer) {
+                                for (var i = 0; i < this.length; i++) {
+                                    if (comparer(this[i])) return true;
+                                }
+                                return false;
+                            };
+
+                            // adds an element to the array if it does not already exist using a comparer
+                            // function
+                            Array.prototype.pushIfNotExist = function (
+                                element,
+                                comparer
+                            ) {
+                                if (!this.inArray(comparer)) {
+                                    this.push(element);
+                                } else {
+                                    for (var i = 0; i < this.length; i++) {
+                                        if (comparer(this[i])) {
+                                            this[i].question = question;
+                                            this[i].answer = answer;
+                                        }
+                                    }
+                                }
+                            };
+
+                            let lastQuestion = {
+                                jId: noWa,
+                                question: question,
+                                answer: answer,
+                            };
+
+                            let readData =
+                                fs.readFileSync("last_question.json");
+                            let jsonParsed = JSON.parse(readData);
+
+                            jsonParsed.pushIfNotExist(
+                                lastQuestion,
+                                function (e) {
+                                    return e.jId == noWa;
+                                }
+                            );
+
+                            let jsonData = JSON.stringify(jsonParsed);
+                            fs.writeFileSync("last_question.json", jsonData);
                         }
                     }
                 } else if (
