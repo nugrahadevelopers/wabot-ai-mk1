@@ -52,17 +52,19 @@ const getCompletion = async (lastQuestion, lastAnswer, question) => {
     });
 
     return response.data.choices[0].message.content;
+};
 
-    // const response = await openai.createCompletion({
-    //     model: process.env.OPENAI_API_MODEL,
-    //     prompt: `${question}`,
-    //     max_tokens: 500,
-    //     temperature: 0.9,
-    // });
+const getImageCompletion = async (prompt) => {
+    const response = await openai.createImage({
+        prompt: `${prompt}`,
+        n: 1,
+        size: "512x512",
+    });
 
-    // return response.data.choices[0].text;
+    return response.data.data[0].url;
 };
 
 module.exports = {
     getCompletion,
+    getImageCompletion,
 };

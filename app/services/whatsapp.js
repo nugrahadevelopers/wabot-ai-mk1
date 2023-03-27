@@ -13,7 +13,7 @@ const fs = require("fs");
 const path = require("path");
 
 const { getPBUpdate } = require("./github");
-const { getCompletion } = require("./openai");
+const { getCompletion, getImageCompletion } = require("./openai");
 
 const { state, saveState } = useSingleFileAuthState("auth_info.json");
 
@@ -327,6 +327,48 @@ const connectToWhatsApp = async () => {
                     await sock.sendMessage(noWa, menu3, {
                         ephemeralExpiration: 604800,
                     });
+                } else if (
+                    !messages[0].key.fromMe &&
+                    pesanMasuk.split(" ").slice(0, 2).join(" ") ===
+                        "buatkan gambar"
+                ) {
+                    const prompt = pesanMasuk.replace("buatkan gambar", "");
+                    if (prompt == "") {
+                        await delay(10);
+                        await sock.readMessages([messages[0].key]);
+                        await delay(10);
+                        await sock.sendMessage(
+                            noWa,
+                            {
+                                text: "Jangan cuman buatkan gambar saja, ketikan deskripsi yang ingin dibuat setelahnya..",
+                            },
+                            { quoted: messages[0] }
+                        );
+                    } else {
+                        var answer;
+                        answer = await getImageCompletion(prompt);
+                        console.log(answer);
+                        if (answer) {
+                            await delay(10);
+                            await sock.readMessages([messages[0].key]);
+                            await delay(10);
+                            const hasil = {
+                                image: {
+                                    url: answer,
+                                },
+                                caption: "Ini hasilnya, bagaimana?",
+                            };
+
+                            await sock.sendMessage(noWa, hasil, {
+                                ephemeralExpiration: 604800,
+                            });
+                            // await sock.sendMessage(
+                            //     noWa,
+                            //     { text: answer },
+                            //     { quoted: messages[0] }
+                            // );
+                        }
+                    }
                 }
             }
         }
